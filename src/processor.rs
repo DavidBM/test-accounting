@@ -1,11 +1,13 @@
+use std::sync::Arc;
+use dashmap::DashMap;
 use crate::account::{Account, AccountOperation, AccountOperationType};
 use crossbeam_channel::{bounded, Sender};
 use eyre::Result;
-use std::collections::BTreeMap;
+use rayon::prelude::*;
 
 #[derive(Debug)]
 pub enum AccountCommand {
-    Report(Sender<BTreeMap<u16, Account>>),
+    Report(Sender<Arc<DashMap<u16, Account>>>),
     Operate(AccountOperation),
 }
 
@@ -29,8 +31,8 @@ impl AccountProcessor {
     }
 
     #[inline]
-    pub fn report(&self) -> Result<BTreeMap<u16, Account>> {
-        let (report_sender, report_receiver) = bounded::<BTreeMap<u16, Account>>(0);
+    pub fn report(&self) -> Result<Arc<DashMap<u16, Account>>> {
+        let (report_sender, report_receiver) = bounded(0);
 
         self.sender.send(AccountCommand::Report(report_sender))?;
 
@@ -43,28 +45,27 @@ fn create_worker(max_queue: usize) -> Sender<AccountCommand> {
     let (sender, receiver) = bounded::<AccountCommand>(max_queue);
 
     std::thread::spawn(move || {
-        let mut accounts: BTreeMap<u16, Account> = BTreeMap::new();
+        let accounts: Arc<DashMap<u16, Account>> = Arc::new(DashMap::new());
 
-        while let Ok(command) = receiver.recv() {
+        receiver.into_iter().par_bridge().for_each(|command| {
             match command {
                 AccountCommand::Operate(operation) => {
-                    apply_operate_command(&mut accounts, operation)
+                    apply_operate_command(&accounts, operation)
                 }
                 AccountCommand::Report(sender) => {
-                    let _ = sender.send(accounts);
-                    break;
+                    let _ = sender.send(accounts.clone());
                 }
             }
-        }
+        });
     });
 
     sender
 }
 
 #[inline]
-fn apply_operate_command(accounts: &mut BTreeMap<u16, Account>, operation: AccountOperation) {
-    if let Some(account) = accounts.get_mut(operation.get_client()) {
-        process_operation(account, operation);
+fn apply_operate_command(accounts: &DashMap<u16, Account>, operation: AccountOperation) {
+    if let Some(mut account) = accounts.get_mut(operation.get_client()) {
+        process_operation(&mut account, operation);
     } else {
         let mut account = Account::new(*operation.get_client());
         let client = *operation.get_client();
