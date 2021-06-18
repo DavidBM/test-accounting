@@ -1,38 +1,22 @@
-mod account;
-mod processor;
-
-use crate::account::AccountOperation;
-use crate::processor::AccountProcessor;
 use clap::{App, Arg, ArgMatches};
 use eyre::Result;
-use std::fs::File;
-use std::io::{BufReader, BufWriter};
+use std::{
+    fs::File,
+    io::{BufReader, BufWriter},
+};
+use test_accounting::{get_mb_in_bytes, process_csv};
 
 fn main() -> Result<()> {
-    let mut csv_reader = get_source_reader_from_args()?;
+    let source_reader = get_source_reader_from_args()?;
 
-    let processor = AccountProcessor::new(calculate_mem_cache(1024));
+    let mut output_writer = BufWriter::with_capacity(get_mb_in_bytes(1024), std::io::stdout());
 
-    for result in csv_reader.deserialize() {
-        let operation: AccountOperation = result?;
-        processor.operate(operation)?;
-    }
-
-    let result = processor.report()?;
-
-    let mut csv_writer = csv::Writer::from_writer(BufWriter::with_capacity(
-        get_mb_in_bytes(1024),
-        std::io::stdout(),
-    ));
-
-    let _ = result
-        .into_iter()
-        .for_each(|(_, account)| csv_writer.serialize(account).unwrap());
+    process_csv(source_reader, &mut output_writer)?;
 
     Ok(())
 }
 
-fn get_source_reader_from_args() -> Result<csv::Reader<BufReader<File>>> {
+fn get_source_reader_from_args() -> Result<BufReader<File>> {
     let matches = get_exec_args();
 
     let source_csv_path = matches
@@ -40,11 +24,8 @@ fn get_source_reader_from_args() -> Result<csv::Reader<BufReader<File>>> {
         .expect("No source csv path provided");
 
     let source_csv = std::fs::File::open(source_csv_path)?;
-    let source_csv = BufReader::new(source_csv);
 
-    Ok(csv::ReaderBuilder::new()
-        .flexible(true)
-        .from_reader(source_csv))
+    Ok(BufReader::new(source_csv))
 }
 
 fn get_exec_args() -> ArgMatches<'static> {
@@ -58,16 +39,4 @@ fn get_exec_args() -> ArgMatches<'static> {
                 .index(1),
         )
         .get_matches()
-}
-
-// Calculates how many messages will take to fill the given
-// memory space.
-fn calculate_mem_cache(megabytes: usize) -> usize {
-    let message_size = std::mem::size_of::<AccountOperation>();
-
-    get_mb_in_bytes(megabytes) / message_size
-}
-
-fn get_mb_in_bytes(mb: usize) -> usize {
-    mb * 1024 * 1024
 }
