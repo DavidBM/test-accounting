@@ -16,7 +16,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-/// Return a reader from a file given from the shell 
+/// Return a reader from a file given from the shell
 /// first argument
 fn get_source_reader_from_args() -> Result<BufReader<File>> {
     let matches = get_exec_args();

@@ -3,8 +3,8 @@ use crossbeam_channel::{bounded, Sender};
 use eyre::Result;
 use std::collections::BTreeMap;
 
-/// Each transaction is represented with a AccountCommand::Operate. 
-/// The Report variant is used to gather the results 
+/// Each transaction is represented with a AccountCommand::Operate.
+/// The Report variant is used to gather the results
 /// at the end of the program.
 #[derive(Debug)]
 pub enum AccountCommand {
@@ -12,7 +12,7 @@ pub enum AccountCommand {
     Operate(AccountOperation),
 }
 
-/// Handles all the accounts transactions and keeps 
+/// Handles all the accounts transactions and keeps
 /// the state
 pub struct AccountProcessor {
     sender: Sender<AccountCommand>,
@@ -26,8 +26,8 @@ impl AccountProcessor {
         AccountProcessor { sender }
     }
 
-    /// Executed a transaction. It sends the transaction 
-    /// operation command to the processing thread via a 
+    /// Executed a transaction. It sends the transaction
+    /// operation command to the processing thread via a
     /// channel.
     #[inline]
     pub fn operate(&self, operation: AccountOperation) -> Result<()> {
@@ -36,7 +36,7 @@ impl AccountProcessor {
         Ok(())
     }
 
-    /// Ends the execution and returns the current state 
+    /// Ends the execution and returns the current state
     /// of all accounts.
     #[inline]
     pub fn report(&self) -> Result<BTreeMap<u16, Account>> {
@@ -73,8 +73,8 @@ fn create_worker(max_queue: usize) -> Sender<AccountCommand> {
     sender
 }
 
-/// Applies the operation to the accounts. If there isn't 
-/// an account with the provided ID, it will create a new 
+/// Applies the operation to the accounts. If there isn't
+/// an account with the provided ID, it will create a new
 /// one.
 #[inline]
 fn apply_operate_command(accounts: &mut BTreeMap<u16, Account>, operation: AccountOperation) {
@@ -88,7 +88,7 @@ fn apply_operate_command(accounts: &mut BTreeMap<u16, Account>, operation: Accou
     }
 }
 
-/// Given an account and an operation, applies the operation 
+/// Given an account and an operation, applies the operation
 /// to the account
 #[inline]
 fn process_operation(account: &mut Account, operation: AccountOperation) {

@@ -126,3 +126,41 @@ type,		 	client, tx,       amount
 
     assert_eq!(expected_output, &String::from_utf8(output).unwrap())
 }
+
+#[test]
+fn missing_trailing_comma_on_missing_param() {
+    let input = r#"type,client,tx,amount
+deposit,14,1,57097.49
+dispute,14,2,16397.12
+chargeback,14,2,
+deposit,14,1,57097.49
+"#;
+    let expected_output = r#"client,available,held,locked,total
+14,40700.37,16397.12,true,57097.49
+"#;
+
+    let mut output: Vec<u8> = vec![];
+
+    process_csv(input.as_bytes(), &mut output).unwrap();
+
+    assert_eq!(expected_output, &String::from_utf8(output).unwrap())
+}
+
+#[test]
+fn too_many_trailing_commas() {
+    let input = r#"type,client,tx,amount
+deposit,14,1,57097.49,,,,
+dispute,14,2,16397.12
+chargeback,14,2,,
+deposit,14,1,57097.49
+"#;
+    let expected_output = r#"client,available,held,locked,total
+14,40700.37,16397.12,true,57097.49
+"#;
+
+    let mut output: Vec<u8> = vec![];
+
+    process_csv(input.as_bytes(), &mut output).unwrap();
+
+    assert_eq!(expected_output, &String::from_utf8(output).unwrap())
+}
