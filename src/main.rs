@@ -23,11 +23,8 @@ fn main() -> Result<()> {
     let mut csv_writer = csv::Writer::from_writer(std::io::stdout());
 
     let _ = result
-        .iter()
-        .map(|(_, account)| {
-            csv_writer.serialize(account).unwrap();
-        })
-        .collect::<Vec<()>>();
+        .into_iter()
+        .for_each(|(_, account)| csv_writer.serialize(account).unwrap());
 
     Ok(())
 }
@@ -42,7 +39,9 @@ fn get_source_reader_from_args() -> Result<csv::Reader<BufReader<File>>> {
     let source_csv = std::fs::File::open(source_csv_path)?;
     let source_csv = BufReader::new(source_csv);
 
-    Ok(csv::Reader::from_reader(source_csv))
+    Ok(csv::ReaderBuilder::new()
+        .flexible(true)
+        .from_reader(source_csv))
 }
 
 fn get_exec_args() -> ArgMatches<'static> {

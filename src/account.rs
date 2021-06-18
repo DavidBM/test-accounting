@@ -18,14 +18,30 @@ pub enum AccountOperationType {
 #[derive(Debug, serde::Deserialize)]
 pub struct AccountOperation {
     r#type: AccountOperationType,
-    pub client: u16,
-    pub tx: u32,
-    pub amount: Decimal,
+    client: u16,
+    tx: u32,
+    amount: Option<Decimal>,
 }
 
 impl AccountOperation {
+    #[inline]
     pub fn get_type(&self) -> &AccountOperationType {
         &self.r#type
+    }
+
+    #[inline]
+    pub fn get_amount(&self) -> &Option<Decimal> {
+        &self.amount
+    }
+
+    #[inline]
+    pub fn get_tx(&self) -> &u32 {
+        &self.tx
+    }
+
+    #[inline]
+    pub fn get_client(&self) -> &u16 {
+        &self.client
     }
 }
 
@@ -39,6 +55,7 @@ pub struct Account {
 }
 
 impl Serialize for Account {
+    #[inline]
     fn serialize<S>(&self, ser: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -55,6 +72,7 @@ impl Serialize for Account {
 }
 
 impl Account {
+    #[inline]
     pub fn new(client: u16) -> Account {
         Account {
             client,
@@ -65,46 +83,59 @@ impl Account {
         }
     }
 
+    #[inline]
     pub fn get_total(&self) -> Decimal {
         self.available + self.held
     }
 
+    #[inline]
     pub fn is_locked(&self) -> bool {
         self.locked
     }
 
+    #[inline]
     pub fn lock(&mut self) {
         self.locked = true;
     }
 
-    pub fn deposit(&mut self, amount: Decimal) {
+    #[inline]
+    pub fn deposit(&mut self, amount: &Option<Decimal>) {
         if self.is_locked() {
             return;
         }
 
-        self.available += amount;
+        if let Some(amount) = amount {
+            self.available += amount;
+        }
     }
 
-    pub fn withdraw(&mut self, amount: Decimal) {
+    #[inline]
+    pub fn withdraw(&mut self, amount: &Option<Decimal>) {
         if self.is_locked() {
             return;
         }
 
-        self.available -= amount;
+        if let Some(amount) = amount {
+            self.available -= amount;
+        }
     }
 
-    pub fn dispute(&mut self, amount: Decimal, tx_id: u32) {
+    #[inline]
+    pub fn dispute(&mut self, amount: &Option<Decimal>, tx_id: &u32) {
         if self.is_locked() {
             return;
         }
 
-        self.available -= amount;
-        self.held += amount;
+        if let Some(amount) = amount {
+            self.available -= amount;
+            self.held += amount;
 
-        self.active_disputes.insert(tx_id, amount);
+            self.active_disputes.insert(*tx_id, *amount);
+        }
     }
 
-    pub fn resolve(&mut self, tx_id: u32) {
+    #[inline]
+    pub fn resolve(&mut self, tx_id: &u32) {
         if self.is_locked() {
             return;
         }
@@ -117,11 +148,14 @@ impl Account {
         }
     }
 
-    pub fn chargeback(&mut self, tx_id: u32) {
+    #[inline]
+    pub fn chargeback(&mut self, tx_id: &u32) {
         if self.is_locked() {
             return;
         }
 
+        // We keep the dispute for later research of why
+        // the account was locked
         let amount = self.active_disputes.get(&tx_id);
 
         if amount.is_none() {
