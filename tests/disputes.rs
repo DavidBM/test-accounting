@@ -78,6 +78,39 @@ withdrawal,2,5,3.0
 }
 
 #[test]
+fn no_newline_eof() {
+    let input = r#"type,client,tx,amount
+deposit,1,1,1.0"#;
+    let expected_output = r#"client,available,held,locked,total
+1,1,0,false,1
+"#;
+
+    let mut output: Vec<u8> = vec![];
+
+    process_csv(input.as_bytes(), &mut output).unwrap();
+
+    assert_eq!(expected_output, &String::from_utf8(output).unwrap())
+}
+
+#[test]
+fn newline_start_input() {
+    let input = r#"
+
+type,client,tx,amount
+deposit,1,1,1.0
+"#;
+    let expected_output = r#"client,available,held,locked,total
+1,1,0,false,1
+"#;
+
+    let mut output: Vec<u8> = vec![];
+
+    process_csv(input.as_bytes(), &mut output).unwrap();
+
+    assert_eq!(expected_output, &String::from_utf8(output).unwrap())
+}
+
+#[test]
 fn weird_spacing() {
     let input = r#"
 
