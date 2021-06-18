@@ -13,7 +13,7 @@ const QUEUE_CACHE_MB: usize = 25;
 /// have too as you can use the code in other libraries
 /// and executables too.
 pub fn process_csv<R: Read, W: Write>(reader: R, writer: &mut W) -> Result<()> {
-    let mut csv_reader = csv::ReaderBuilder::new().flexible(true).from_reader(reader);
+    let mut csv_reader = csv::ReaderBuilder::new().flexible(true).trim(csv::Trim::All).from_reader(reader);
 
     // This uses a different thread for the operations
     // in order to allow the reader to be as sequential
