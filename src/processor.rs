@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 
 #[derive(Debug)]
 pub enum AccountCommand {
-    Report(Sender<BTreeMap<u16, Account>>), //TODO: Add sender here for the final report
+    Report(Sender<BTreeMap<u16, Account>>),
     Operate(AccountOperation),
 }
 
