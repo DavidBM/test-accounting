@@ -1,8 +1,11 @@
-use std::collections::HashMap;
 use decimal_rs::Decimal;
-use serde::{ser::{Serializer, SerializeStruct}, Serialize};
+use serde::{
+    ser::{SerializeStruct, Serializer},
+    Serialize,
+};
+use std::collections::HashMap;
 
-#[derive(Debug, serde::Deserialize, Clone)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AccountOperationType {
     Deposit,
@@ -42,7 +45,7 @@ impl Serialize for Account {
     {
         let mut output = ser.serialize_struct("Account", 5)?;
         output.serialize_field("client", &self.client)?;
-        output.serialize_field("available",&self.available)?;
+        output.serialize_field("available", &self.available)?;
         output.serialize_field("held", &self.held)?;
         output.serialize_field("locked", &self.locked)?;
         output.serialize_field("total", &self.get_total())?;
@@ -128,4 +131,3 @@ impl Account {
         self.lock();
     }
 }
-

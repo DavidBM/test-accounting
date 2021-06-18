@@ -3,44 +3,37 @@ mod processor;
 
 use crate::account::AccountOperation;
 use crate::processor::AccountProcessor;
-use clap::{App, Arg};
+use clap::{App, Arg, ArgMatches};
 use eyre::Result;
-use std::io::BufReader;
 use std::fs::File;
+use std::io::BufReader;
 
 fn main() -> Result<()> {
-
     let mut csv_reader = get_source_reader_from_args()?;
 
-    let mut processor = AccountProcessor::new();
+    let processor = AccountProcessor::new(calculate_mem_cache(1024));
 
     for result in csv_reader.deserialize() {
         let operation: AccountOperation = result?;
-        processor.process_operation(operation);
+        processor.operate(operation)?;
     }
 
-    let result = processor.report();
+    let result = processor.report()?;
 
     let mut csv_writer = csv::Writer::from_writer(std::io::stdout());
 
-    let _ = result.iter().map(|(_, account)| {
-        csv_writer.serialize(account).unwrap();
-    }).collect::<Vec<()>>();
+    let _ = result
+        .iter()
+        .map(|(_, account)| {
+            csv_writer.serialize(account).unwrap();
+        })
+        .collect::<Vec<()>>();
 
     Ok(())
 }
 
 fn get_source_reader_from_args() -> Result<csv::Reader<BufReader<File>>> {
-    let matches = App::new("CSV Transactions Processor")
-        .version("1.0")
-        .author("David B. <dbmontes@gmail.com>")
-        .arg(
-            Arg::with_name("source")
-                .help("Relative path to the source csv file")
-                .required(true)
-                .index(1),
-        )
-        .get_matches();
+    let matches = get_exec_args();
 
     let source_csv_path = matches
         .value_of("source")
@@ -50,4 +43,25 @@ fn get_source_reader_from_args() -> Result<csv::Reader<BufReader<File>>> {
     let source_csv = BufReader::new(source_csv);
 
     Ok(csv::Reader::from_reader(source_csv))
+}
+
+fn get_exec_args() -> ArgMatches<'static> {
+    App::new("CSV Transactions Processor")
+        .version("1.0")
+        .author("David B. <dbmontes@gmail.com>")
+        .arg(
+            Arg::with_name("source")
+                .help("Relative path to the source csv file")
+                .required(true)
+                .index(1),
+        )
+        .get_matches()
+}
+
+// Calculates how many messages will take to fill the given
+// memory space.
+fn calculate_mem_cache(megabytes: usize) -> usize {
+    let message_size = std::mem::size_of::<AccountOperation>();
+
+    (megabytes * 1024 * 1024) / message_size
 }
