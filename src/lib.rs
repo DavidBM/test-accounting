@@ -62,7 +62,7 @@ pub fn process_csv<R: Read, W: Write>(reader: R, writer: &mut W) -> Result<()> {
 /// Calculates how many messages will take to fill the given
 /// memory space taking in account the message size sent in
 /// the crossbeam channel.
-pub fn calculate_mem_cache(megabytes: usize) -> usize {
+fn calculate_mem_cache(megabytes: usize) -> usize {
     let message_size = std::mem::size_of::<AccountOperation>();
 
     get_mb_in_bytes(megabytes) / message_size
