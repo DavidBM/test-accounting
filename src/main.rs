@@ -6,24 +6,24 @@ use crate::processor::AccountProcessor;
 use clap::{App, Arg};
 use eyre::Result;
 use std::io::BufReader;
-use std::{convert::TryInto, fs::File};
+use std::fs::File;
 
 fn main() -> Result<()> {
 
     let mut csv_reader = get_source_reader_from_args()?;
 
-    let processor = AccountProcessor::new(1, 10000)?;
+    let mut processor = AccountProcessor::new();
 
     for result in csv_reader.deserialize() {
         let operation: AccountOperation = result?;
-        processor.process_operation(operation)?;
+        processor.process_operation(operation);
     }
 
-    let result = processor.report()?;
+    let result = processor.report();
 
     let mut csv_writer = csv::Writer::from_writer(std::io::stdout());
 
-    let _ = result.into_iter().map(|(_, account)| {
+    let _ = result.iter().map(|(_, account)| {
         csv_writer.serialize(account).unwrap();
     }).collect::<Vec<()>>();
 
