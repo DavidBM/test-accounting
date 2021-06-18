@@ -4,7 +4,7 @@ This project showcases transaction processor which takes its input from a CSV an
 
 ## TL;DR
 
-Run `cargo test` to execute a varied set of tests. You can check `tests/tests.rs` to see several ussages of the library version of the crate. You can use `cargo run -- transactions.csv > accounts.csv` to run the executable.
+Run `cargo test` to execute a varied set of tests. You can check `tests/tests.rs` to see several ussages of the library version of the crate. You can use `cargo run -- transactions.csv > accounts.csv` to run the executable. I advise to use the `--release` flat to test the executable.
 
 ## Design Decisions
 
