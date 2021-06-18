@@ -121,6 +121,10 @@ impl Account {
         }
 
         if let Some(amount) = amount {
+            if self.available < amount {
+                return;
+            }
+
             self.available -= amount;
         }
     }

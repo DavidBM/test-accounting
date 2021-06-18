@@ -55,3 +55,24 @@ deposit,14,1,57097.49
 
     assert_eq!(expected_output, &String::from_utf8(output).unwrap())
 }
+
+#[test]
+fn provided_case() {
+    let input = r#"type,client,tx,amount
+deposit,1,1,1.0
+deposit,2,2,2.0
+deposit,1,3,2.0
+withdrawal,1,4,1.5
+withdrawal,2,5,3.0
+"#;
+    let expected_output = r#"client,available,held,locked,total
+1,1.5,0,false,1.5
+2,2,0,false,2
+"#;
+
+    let mut output: Vec<u8> = vec![];
+
+    process_csv(input.as_bytes(), &mut output).unwrap();
+
+    assert_eq!(expected_output, &String::from_utf8(output).unwrap())
+}
