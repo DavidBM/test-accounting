@@ -10,10 +10,8 @@ edition = "2018"
 clap = "2.33.3"
 crossbeam-channel = "0.5.1"
 csv = "1.1.6"
-dashmap = "4.0.2"
 decimal-rs = {version = "0.1.12", features = ["serde"]}
 eyre = "0.6.5"
 num_cpus = "1.13.0"
-rayon = "1.5.1"
 serde = {version = "1.0.126", features = ["serde_derive"]}
 stable-eyre = "0.2.2"

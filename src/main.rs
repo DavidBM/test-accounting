@@ -26,8 +26,8 @@ fn main() -> Result<()> {
     ));
 
     let _ = result
-        .iter()
-        .for_each(|account| csv_writer.serialize(account.value()).unwrap());
+        .into_iter()
+        .for_each(|(_, account)| csv_writer.serialize(account).unwrap());
 
     Ok(())
 }
