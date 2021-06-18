@@ -5,6 +5,7 @@ use serde::{
 };
 use std::collections::HashMap;
 
+/// Representes all 5 transaction types
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AccountOperationType {
@@ -15,6 +16,7 @@ pub enum AccountOperationType {
     Chargeback,
 }
 
+/// Represents a transaction to be applied to an account.
 #[derive(Debug, serde::Deserialize)]
 pub struct AccountOperation {
     r#type: AccountOperationType,
@@ -45,6 +47,9 @@ impl AccountOperation {
     }
 }
 
+/// Represents an account where transactions can be applied.
+/// It has a custome serializer so it can be rendered only
+/// with the human-expected arguments.
 #[derive(Debug)]
 pub struct Account {
     client: u16,

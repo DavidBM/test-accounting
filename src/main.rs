@@ -16,6 +16,8 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+/// Return a reader from a file given from the shell 
+/// first argument
 fn get_source_reader_from_args() -> Result<BufReader<File>> {
     let matches = get_exec_args();
 
@@ -28,6 +30,7 @@ fn get_source_reader_from_args() -> Result<BufReader<File>> {
     Ok(BufReader::new(source_csv))
 }
 
+/// Declares the binary executable parameters and help
 fn get_exec_args() -> ArgMatches<'static> {
     App::new("CSV Transactions Processor")
         .version("1.0")
