@@ -6,7 +6,7 @@ This project showcases transaction processor which takes its input from a CSV an
 
 I've tried several design. Mostly related with parallelization. You can see the different approaches in the commits that start with "poc" (ex: poc 4: rayon. In which I tried rayon in order to parallelize transaction processing).
 
-### Parallelization Performance
+### Parallelization
 
 I tried several design in order to parallelize the process. The main problem with CSV is that its parsing cannot be parallelized, so the ideal situation for parsing a CSV is having a thread only parsing the CSV and sending work to other thread/s.
 
@@ -14,7 +14,7 @@ The operations in itself aren't complex and it is hard that they are going to su
 
 During the development I tried several ways to try to parallelize the work, but they all showed to be slower than just having 2 threads, one reading/parsing and other processing transfers.
 
-As a summary for fast comparative when processing a CSV with 21 million entries:
+As a summary for fast comparative when processing a CSV with 21 million entries (without white-spaces handling):
 - 1 thread parsing and processing: 6.5 seconds.
 - 1 thread parsing + rayon (with Dashmap) for processing: 12 seconds
 - 1 thread parsing + thread pool (with data sharding) for processing: 9 seconds
@@ -112,3 +112,24 @@ In such case, the transaction serialization per account is still required, but t
 ## Performance Numbers
 
 Best case for 21 Million (597 MB file) transactions read from the CSV, processed and saved to a CSV: 4.8 seconds in my i7-9750H with SSD.
+
+There is an important thing to be notes. Once enabling the `.trim(csv::Trim::All)` on the `csv` library, the processing time goes up from 4.8 seconds to 12.5 seconds. I left it with the trim enabled, as that is a hard requirement. If performance is paramount, I would create a custom parser using `nom` or similar crate for the specific CSV format used in production. I've done parsers in the past (https://github.com/Couragium/ion-binary-rs and https://github.com/Couragium/qldb-rs) and it is an accessible thing to do safely in Rust.  
+
+## Dependencies
+
+- clap: executable arguments parsing
+- crossbeam-channel: channel between main thread and worker thread 
+- csv: csv parsing / encoding
+- decimal: decimal handling
+- eyre: error handling library (like anyhow, but a bit more ergonomic)
+- serde: generic serialization/deserialization
+
+`cargo audit` is clean.
+
+`cargo geiger` shows that the library `csv` and `decimal-rs` directly use unsafe. I don't like that. I trust `eyre`, `clap` and `crossbeam-channel`, but I would question is unsafe is really needed in a csv parser and a decimal handling library.
+
+`cargo clippy` is clean
+
+`cargo test` is clean
+
+`cargo build` is clean
