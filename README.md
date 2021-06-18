@@ -1,6 +1,10 @@
 # Test Accounting
 
-This project showcases transaction processor which takes its input from a CSV and outputs another CSV with the resulting accounts state. 
+This project showcases transaction processor which takes its input from a CSV and outputs another CSV with the resulting accounts state.
+
+## TL;DR
+
+Run `cargo test` to execute a varied set of tests. You can check `tests/tests.rs` to see several ussages of the library version of the crate. You can use `cargo run -- transactions.csv > accounts.csv` to run the executable.
 
 ## Design Decisions
 
