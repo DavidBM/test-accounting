@@ -4,7 +4,7 @@ This project showcases transaction processor which takes its input from a CSV an
 
 ## Design Decisions
 
-I've tried several design. Mostly related with parallelization. You can see the different approaches in the commits that start with "poc" (ex: poc 4: rayon. In which I tried rayon in order to parallelize transaction processing).
+I've tried several design. Mostly related with parallelization. You can see the different approaches in the commits that start with "poc" (ex: "poc 4: rayon". In which I tried rayon in order to parallelize transaction processing).
 
 ### Parallelization
 
@@ -28,6 +28,8 @@ The 1+1 design works best compared to others 1+>1 due to these reasons:
 ### Parallelization Correctness
 
 For keeping the correctness of the system, the most important thing when thinking on the concurrency part is that **message processing must be serialized per account**. Messages from different account can be processed in parallel.
+
+Initially I though to just use rayon to parallelize the processing, but this point made impossible to "just use rayon TM" because it requires some ordering before processing.
 
 ### Parallelization Design and Data Structures Chosen
 
