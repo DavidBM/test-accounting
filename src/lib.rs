@@ -8,6 +8,9 @@ use std::io::{Read, Write};
 
 const QUEUE_CACHE_MB: usize = 25;
 
+/// Processes the transafer in a CSV Reader and outputs
+/// the accounts state into a Writer as CSV.
+/// 
 /// This method is generic over a reader and a writer in
 /// order to allow easier testing. It is a nice thing to
 /// have too as you can use the code in other libraries
