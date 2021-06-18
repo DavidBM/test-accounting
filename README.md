@@ -111,9 +111,9 @@ In such case, the transaction serialization per account is still required, but t
 
 ## Performance Numbers
 
-Best case for 21 Million (597 MB file) transactions read from the CSV, processed and saved to a CSV: 4.8 seconds in my i7-9750H with SSD.
+Best case for 21 Million (597 MB file) transactions read from the CSV, processed and saved to a CSV: 12.5 seconds in my i7-9750H with SSD.
 
-There is an important thing to be notes. Once enabling the `.trim(csv::Trim::All)` on the `csv` library, the processing time goes up from 4.8 seconds to 12.5 seconds. I left it with the trim enabled, as that is a hard requirement. If performance is paramount, I would create a custom parser using `nom` or similar crate for the specific CSV format used in production. I've done parsers in the past (https://github.com/Couragium/ion-binary-rs and https://github.com/Couragium/qldb-rs) and it is an accessible thing to do safely in Rust.  
+There is an important thing to be noted. When disabling the `.trim(csv::Trim::All)` on the `csv` library, the processing time goes down to **4.8 seconds**. I left it with the trim enabled, as that is a hard requirement. If performance is paramount, I would create a custom parser using `nom` or similar crate for the specific CSV format used in production. I've done parsers in the past (https://github.com/Couragium/ion-binary-rs and https://github.com/Couragium/qldb-rs) and it is an accessible thing to do safely in Rust.  
 
 ## Dependencies
 
