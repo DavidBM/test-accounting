@@ -78,7 +78,9 @@ fn process_operation(account: &mut Account, operation: AccountOperation) {
     match operation.get_type() {
         AccountOperationType::Deposit => account.deposit(operation.get_amount()),
         AccountOperationType::Withdrawal => account.withdraw(operation.get_amount()),
-        AccountOperationType::Dispute => account.dispute(operation.get_amount(), operation.get_tx()),
+        AccountOperationType::Dispute => {
+            account.dispute(operation.get_amount(), operation.get_tx())
+        }
         AccountOperationType::Resolve => account.resolve(operation.get_tx()),
         AccountOperationType::Chargeback => account.chargeback(operation.get_tx()),
     }

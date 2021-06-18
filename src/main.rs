@@ -6,7 +6,7 @@ use crate::processor::AccountProcessor;
 use clap::{App, Arg, ArgMatches};
 use eyre::Result;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, BufWriter};
 
 fn main() -> Result<()> {
     let mut csv_reader = get_source_reader_from_args()?;
@@ -20,7 +20,10 @@ fn main() -> Result<()> {
 
     let result = processor.report()?;
 
-    let mut csv_writer = csv::Writer::from_writer(std::io::stdout());
+    let mut csv_writer = csv::Writer::from_writer(BufWriter::with_capacity(
+        get_mb_in_bytes(1024),
+        std::io::stdout(),
+    ));
 
     let _ = result
         .into_iter()
@@ -62,5 +65,9 @@ fn get_exec_args() -> ArgMatches<'static> {
 fn calculate_mem_cache(megabytes: usize) -> usize {
     let message_size = std::mem::size_of::<AccountOperation>();
 
-    (megabytes * 1024 * 1024) / message_size
+    get_mb_in_bytes(megabytes) / message_size
+}
+
+fn get_mb_in_bytes(mb: usize) -> usize {
+    mb * 1024 * 1024
 }
