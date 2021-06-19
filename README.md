@@ -1,20 +1,20 @@
 # Test Accounting
 
-This project showcases transaction processor which takes its input from a CSV and outputs another CSV with the resulting accounts state.
+This project showcases a transaction processor which takes its input from a CSV and outputs another CSV with the resulting accounts state.
 
 ## TL;DR
 
-Run `cargo test` to execute a varied set of tests. You can check `tests/tests.rs` to see several ussages of the library version of the crate. You can use `cargo run -- transactions.csv > accounts.csv` to run the executable. I advise to use the `--release` flat to test the executable.
+Run `cargo test` to execute a varied set of tests. You can check `tests/tests.rs` to see several usages of the library version of the crate. You can use `cargo run -- transactions.csv > accounts.csv` to run the executable. I advise to use the `--release` flat to test the executable.
 
 ## Design Decisions
 
-I've tried several design. Mostly related with parallelization. You can see the different approaches in the commits that start with "poc" (ex: "poc 4: rayon". In which I tried rayon in order to parallelize transaction processing).
+I've tried several designs. Mostly related with parallelization. You can see the different approaches in the commits that start with "poc" (ex: "poc 4: rayon". In which I tried rayon in order to parallelize transaction processing).
 
 ### Parallelization
 
-I tried several design in order to parallelize the process. The main problem with CSV is that its parsing cannot be parallelized, so the ideal situation for parsing a CSV is having a thread only parsing the CSV and sending work to other thread/s.
+I tried several designs in order to parallelize the process. The main problem with CSV is that its parsing cannot be parallelized, so the ideal situation for parsing a CSV is having a thread only parsing the CSV and sending work to other thread/s.
 
-The operations in itself aren't complex and it is hard that they are going to suppose a bigger processing cost than the CSV row parsing itself, as they are usually simple additions and subtractions.
+The operations in itself aren't complex, and it is hard that they are going to suppose a bigger processing cost than the CSV row parsing itself, as they are usually simple additions and subtractions.
 
 During the development I tried several ways to try to parallelize the work, but they all showed to be slower than just having 2 threads, one reading/parsing and other processing transfers.
 
@@ -27,23 +27,23 @@ As a summary for fast comparative when processing a CSV with 21 million entries 
 The 1+1 design works best compared to others 1+>1 due to these reasons:
 - *With data sharding*: Multi thread solutions require to reorder the input. This is due to the dependency between messages. Ex: You can only resolve a dispute if the dispute is already processed. So each thread keeps a shard/chunk of the accounts (like Kafka multi consumers) and handles all operations belonging to their accounts. 
 - *With Dashmap or similar*: Having more than 1 thread incurs in synchronization primitives as `Arc`s and, in the worse case (rayon), `Mutex`es. Which in this case, given that the operation in itself is so small, hurts more than benefits.
-- *In general*: 1+1 allows each thread to have a tighter loops that only do one thing, which I suspect that helps the CPU branch predictor to be more efficient.
+- *In general*: 1+1 allows each thread to have a tighter loop that only do one thing, which I suspect that helps the CPU branch predictor to be more efficient.
 
 ### Parallelization Correctness
 
 For keeping the correctness of the system, the most important thing when thinking on the concurrency part is that **message processing must be serialized per account**. Messages from different account can be processed in parallel.
 
-Initially I though to just use rayon to parallelize the processing, but this point made impossible to "just use rayon TM" because it requires some ordering before processing.
+Initially I thought to just use rayon to parallelize the processing, but this point made impossible to "just use rayon TM" because it requires some ordering before processing.
 
 ### Parallelization Design and Data Structures Chosen
 
 Finally, I chose the *1 thread parsing + 1 thread processing* solution as it performs better and it isn't so much more complicated compared to the *1 thread parsing and processing*.
 
-For the thread communication I use `crossbeam-channel` with a 25MB buffer (in my experiments, it was the best performant size).
+For the thread communication I use `crossbeam-channel` with a 25 MB buffer (in my experiments, it was the best performant size).
 
-For the account *"storage"* in ram, I use a `BTreeMap<u16, Account>` as it performed better than a HashMap. I didn't change the hasher when using the HashMap because choosing a hasher is something that needs to be done depending of the execution context and the default Rust hasher is a safe bet for all cases.
+For the account *"storage"* in ram, I use a `BTreeMap<u16, Account>` as it performed better than a HashMap. I didn't change the hasher when using the HashMap because choosing a hasher is something that needs to be done depending on the execution context and the default Rust hasher is a safe bet for all cases.
 
-For the deserialization, I implemented a custom deserialization of account to match the desired output. It is very simple and it can be seen in `<crate::account::Account as Serialize>`.
+For the deserialization, I implemented a custom deserialization of account to match the desired output. It is very simple, and it can be seen in `<crate::account::Account as Serialize>`.
 
 For the numeric handling, I'm using `decimal-rs` in order to avoid IEEE-754 floating-point calculation errors. As a thing to consider, if the program is going to handle astronomically absurd huge quantities (like, as many dollars as atoms are in the galaxy or something like it) then I would use `bigdecimal` or keep `decimal-rs` and use `.checked_add`/`.checked_sub`/etc method family rather than `+` and `-` operators.
 
@@ -72,7 +72,7 @@ I've separated the application in a `main.rs` and a `lib.rs`. The `lib.rs` provi
 ```rust
 fn process_csv<R: Read, W: Write>(reader: R, writer: &mut W) -> Result<()>
 ```
-which doesn't cares of how input and output comes, as long as it can be `.read()` and `.write()`. 
+which doesn't care of how input and output comes, as long as it can be `.read()` and `.write()`. 
 
 The main.rs file makes sure to create and wrap the `File` in a `BufRead` and the output in a `BufWrite` for performance.
 
