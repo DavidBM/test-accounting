@@ -115,6 +115,8 @@ Now, this is a binary to be executed in a local shell and that reads a CSV in th
 
 In such case, the transaction serialization per account is still required, but that can be easily solved with `dashmap` or similar and/or a task-pool (not thread pool).
 
+Also, I had the idea of trying to just parse the csv row as string and then try to deserialize it in parallel. But that has the problem that then they need to be reordered after the parallel deserialization in order to not have `resolve` transactions before the `dispute` transaction. I suspect that that reordering will make the parallelization non-effective.
+
 ## Performance Numbers
 
 Best case for 21 Million (597 MB file) transactions read from the CSV, processed and saved to a CSV: 12.5 seconds in my i7-9750H with SSD.
