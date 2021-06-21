@@ -76,7 +76,7 @@ which doesn't care of how input and output comes, as long as it can be `.read()`
 
 The main.rs file makes sure to create and wrap the `File` in a `BufRead` and the output in a `BufWrite` for performance.
 
-The test become much simple when having a generic interface in the `lib.rs` as you can provide simple string to test the code. Example:
+The testing becomes much simpler when having a generic interface in the `lib.rs` as you can provide simple string to test the code. Example:
 
 ```rust
 #[test]
