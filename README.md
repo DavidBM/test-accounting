@@ -31,7 +31,7 @@ The 1+1 design works best compared to others 1+>1 due to these reasons:
 
 ### Parallelization Correctness
 
-For keeping the correctness of the system, the most important thing when thinking on the concurrency part is that **message processing must be serialized per account**. Messages from different account can be processed in parallel.
+For keeping the correctness of the system, the most important thing when thinking on the concurrency part is that **message processing must be serializable (as in serializable isolation level) per account**. Messages from different account can be processed in parallel.
 
 Initially I thought to just use rayon to parallelize the processing, but this point made impossible to "just use rayon TM" because it requires some ordering before processing.
 
